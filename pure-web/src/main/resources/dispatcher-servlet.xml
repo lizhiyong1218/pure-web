@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <beans xmlns="http://www.springframework.org/schema/beans" 
+		    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		    xmlns:context="http://www.springframework.org/schema/context"
+			xmlns:mvc="http://www.springframework.org/schema/mvc" 
+			xmlns:aop="http://www.springframework.org/schema/aop" 
+			xmlns:p="http://www.springframework.org/schema/p"
+			xmlns:c="http://www.springframework.org/schema/c"
+			xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+				http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+				http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd">
+	
+	<!-- 开启注解支持 -->
+	<mvc:annotation-driven />
+	 
+	<!-- #################################################################### -->
+	<!-- # 1、自动扫描指定包下所有 @Controller -->
+	<!-- #################################################################### -->
+	<context:component-scan base-package="org.lzy.web.controller" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+	
+	<!-- #################################################################### -->
+	<!-- # 2、定义异常解析器 -->
+	<!-- #################################################################### -->
+	<!-- -->
+	<bean class="org.lzy.web.servlet.handler.GenericHandlerExceptionResolver">
+		<property name="exceptionResolvers">
+			<list>
+				<bean class="org.lzy.web.servlet.handler.GenericInternalServerHandlerExceptionResolver" />
+			</list>
+		</property>
+		<property name="exceptionMappings">
+			<props>
+				<prop key="java.lang.Exception">exception</prop>
+			</props>
+		</property>
+	</bean> 
+	
+	<!-- #################################################################### -->
+	<!-- # 3、开启织入切面 @Aspectj -->
+	<!-- # 3.1、proxy-target-class 为 true 使用CGLIB 动态代理织入增强 -->
+	<!-- # 3.2、proxy-target-class 为 false 使用JDK 动态代理织入增强【默认】如目标类没有声明接口 Spring 将自动使用CGLIB 动态代理 -->
+	<!-- #################################################################### -->
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+	
+	<!-- #################################################################### -->
+	<!-- # 4、注册 SpringMVC 分发请求至控制器所须实例 -->
+	<!-- # 4.1、向 SpringMVC 上下文注册 RequestMappingHandlerMapping 实例 -->
+	<!-- # 4.2、向 SpringMVC 上下文注册 RequestMappingHandlerAdapter 实例 -->
+	<!-- #################################################################### -->
+<!-- 	<mvc:annotation-driven>
+		<mvc:message-converters>
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+				<constructor-arg type="java.nio.charset.Charset">
+					<value>UTF-8</value>
+				</constructor-arg>
+				<property name="writeAcceptCharset">
+					<value>false</value>
+				</property>
+			</bean>
+			<bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				<property name="objectMapper">
+					<bean class="com.iceasy.wms.core.web.beans.jackson.CustomObjectMapper" />
+				</property>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven> -->
+
+	<!-- #################################################################### -->
+	<!-- # 5、定义 FreeMarker 视图解析器 -->
+	<!-- #################################################################### -->
+	<!-- <bean class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
+		<property name="order">
+			<value>1</value>
+		</property>
+		<property name="contentType">
+			<value>text/html;charset=UTF-8</value>
+		</property>
+		<property name="suffix">
+			<value>.ftl</value>
+		</property>
+		<property name="exposeRequestAttributes">
+			<value>true</value>
+		</property>
+		<property name="exposeSpringMacroHelpers">
+			<value>true</value>
+		</property>
+		<property name="attributesMap">
+			<map>
+				数据字段函数
+				<entry key="data_dict">
+					<bean class="com.iceasy.wms.core.freemarker.funcation.DataDictFuncation" />
+				</entry>
+				货主函数
+				<entry key="owner_select">
+					<bean class="com.iceasy.wms.core.freemarker.funcation.OwnerSelectFuncation"></bean>
+				</entry>
+				仓库函数
+				<entry key="warehouse_select">
+					<bean class="com.iceasy.wms.core.freemarker.funcation.WarehouseFuncation"></bean>
+				</entry>
+				库区函数
+				<entry key="warehouseArea_select">
+					<bean class="com.iceasy.wms.core.freemarker.funcation.WarehouseAreaFuncation"></bean>
+				</entry>
+			</map>
+		</property>
+	</bean> -->
+
+
+	<!-- #################################################################### -->
+	<!-- # 6、定义 Jsp 视图解析器 -->
+	<!-- #################################################################### -->
+	
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/WEB-INF/pages/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+	
+	
+	
+	<!-- #################################################################### -->
+	<!-- # 7、文件解析器,上传文件 -->
+	<!-- #################################################################### -->
+	<bean id="multipartResolver"  
+	    class="org.springframework.web.multipart.commons.CommonsMultipartResolver">  
+	      <property name="maxUploadSize" value="1073741824"/>  
+	      <property name="resolveLazily" value="true"/>  
+	      <property name="maxInMemorySize" value="4096"/> 
+	      <property name="defaultEncoding" value="UTF-8" />
+	</bean> 
+
+	<!-- #################################################################### -->
+	<!-- # 8、定义拦截器 -->
+	<!-- #################################################################### -->
+	<!-- <mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**" />
+			<bean class="com.iceasy.wms.core.web.servlet.interceptor.OncePerRequestInterceptor" />
+		</mvc:interceptor>
+		
+		<mvc:interceptor>
+			<mvc:mapping path="/**" />
+			<bean class="com.iceasy.wms.core.web.servlet.interceptor.PrivilegeDiscriminatorInterceptor" />
+		</mvc:interceptor>
+	</mvc:interceptors> -->
+
+	<!-- #################################################################### -->
+	<!-- # 9、定义静态资源 -->
+	<!-- #################################################################### -->
+	<!-- <mvc:resources location="/js/" mapping="/js/**" cache-period="3600" />
+	<mvc:resources location="/css/" mapping="/css/**" cache-period="3600" />
+	<mvc:resources location="/images/" mapping="/images/**" cache-period="3600" /> -->
+	<mvc:resources mapping="/resources/**" location="/resources/" />
+
+	<!-- #################################################################### -->
+	<!-- # 10、定义首页 -->
+	<!-- #################################################################### -->
+	<mvc:view-controller path="/" view-name="redirect:/index.do" />
+	
+	
+	
+	<!-- 下面两个bean用于junit测试action -->
+    <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping" />  
+    <!-- <bean  class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" />  -->
+	
+	<!-- 采用SpringMVC自带的JSON转换工具，支持@ResponseBody注解 -->
+	<bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+		<property name="messageConverters">
+			<list>
+				<bean class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter" />
+			</list>
+		</property>
+	</bean>
+
+	<!-- 避免IE执行AJAX时,返回JSON出现下载文件 -->
+	<bean id="mappingJacksonHttpMessageConverter"
+		class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
+		<property name="supportedMediaTypes">
+			<list>
+				<value>text/html;charset=UTF-8</value>
+			</list>
+		</property>
+	</bean>
+	
+
+	
+
+<!-- 	<bean id="urlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+	 	<property name="mappings">
+		  <props>
+		   <prop key="/">urlMapping</prop>
+		  </props>
+	 </property>
+	</bean> -->
+	
+ 
+	
+
+	 
+</beans>
